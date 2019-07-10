@@ -10,18 +10,13 @@ import (
 
 var file string
 
-var configTime, propagateTime, activateTime, stringTime time.Duration
+var windowTime, configTime, propagateTime time.Duration
 
 type flowerPot struct {
-	number   int
-	plant    bool
-	newPlant bool
-	left     *flowerPot
-	right    *flowerPot
-}
-
-func (p *flowerPot) Activate() {
-	p.plant = p.newPlant
+	number int
+	plant  bool
+	left   *flowerPot
+	right  *flowerPot
 }
 
 func (p flowerPot) String() string {
@@ -31,54 +26,24 @@ func (p flowerPot) String() string {
 	return "."
 }
 
-func (p flowerPot) Config() (output string) {
-	// start := time.Now()
-	if l := p.left; l != nil {
-		if ll := l.left; ll != nil {
-			output += ll.String()
-		} else {
-			output += "."
-		}
-		output += l.String()
-	} else {
-		output += ".."
-	}
-	output += p.String()
-	if r := p.right; r != nil {
-		output += r.String()
-		if rr := p.right.right; rr != nil {
-			output += rr.String()
-		} else {
-			output += "."
-		}
-	} else {
-		output += ".."
-	}
-	// configTime += time.Since(start)
-	return
-}
-
-func (p flowerPot) AdaptPreviousConfig(config string) (output string) {
-	output = config[1:]
+func (p flowerPot) AdaptPreviousConfig(config [5]bool) (output [5]bool) {
+	copy(output[:], config[1:])
 	if r := p.right; r != nil {
 		if rr := r.right; rr != nil {
-			output += rr.String()
+			output[4] = rr.plant
 		} else {
-			output += "."
+			output[4] = false
 		}
 	} else {
-		output += "."
+		output[4] = false
 	}
 	return
 }
 
-func (p *flowerPot) Propagate(produceMap map[string]bool, previousConfig string) string {
+func (p *flowerPot) Propagate(produceMap map[[5]bool]bool, previousConfig [5]bool) [5]bool {
 	config := p.AdaptPreviousConfig(previousConfig)
-	if produceMap[config] {
-		p.newPlant = true
-	} else {
-		p.newPlant = false
-	}
+	_, exists := produceMap[config]
+	p.plant = exists
 	return config
 }
 
@@ -88,13 +53,13 @@ type flowerPots struct {
 }
 
 func (p *flowerPots) prepend(value bool) {
-	newPot := flowerPot{p.first.number - 1, value, value, nil, p.first}
+	newPot := flowerPot{p.first.number - 1, value, nil, p.first}
 	p.first.left = &newPot
 	p.first = &newPot
 }
 
 func (p *flowerPots) append(value bool) {
-	newPot := flowerPot{p.last.number + 1, value, value, p.last, nil}
+	newPot := flowerPot{p.last.number + 1, value, p.last, nil}
 	p.last.right = &newPot
 	p.last = &newPot
 }
@@ -125,32 +90,23 @@ func (p flowerPots) Value() (result int) {
 	return result
 }
 
-func (p *flowerPots) Propagate(produceMap map[string]bool) {
-
-	// start := time.Now()
-	var config string
-	prependConfig := "." + p.first.Config()[:4]
+func (p *flowerPots) Propagate(produceMap map[[5]bool]bool) {
+	var config [5]bool
+	prependConfig := [5]bool{false, false, false, p.first.plant, p.first.right.plant}
 	config = prependConfig
 	for iter := p.first; iter != p.last; iter = iter.right {
 		config = iter.Propagate(produceMap, config)
 	}
 	config = p.last.Propagate(produceMap, config)
-	appendConfig := config[1:] + "."
+	var appendConfig [5]bool
+	copy(appendConfig[:], config[1:])
+	appendConfig[4] = false
 	if produceMap[appendConfig] {
 		p.append(true)
 	}
 	if produceMap[prependConfig] {
 		p.prepend(true)
 	}
-	// propagateTime += time.Since(start)
-
-	// start = time.Now()
-
-	for iter := p.first; iter != p.last; iter = iter.right {
-		iter.Activate()
-	}
-	p.last.Activate()
-	// activateTime += time.Since(start)
 }
 
 // GetResult returns the result for Advent of Code Day x
@@ -159,7 +115,7 @@ func GetResult(part string) int {
 	start := time.Now()
 
 	var pots flowerPots
-	produceMap := make(map[string]bool)
+	produceMap := make(map[[5]bool]bool)
 
 	firstPart := part == "A"
 
@@ -181,7 +137,7 @@ func GetResult(part string) int {
 
 	for index, value := range initialState {
 		if index == 0 {
-			pot = flowerPot{0, value == "#", false, nil, nil}
+			pot = flowerPot{0, value == "#", nil, nil}
 			pots.first = &pot
 			pots.last = &pot
 		} else {
@@ -194,7 +150,13 @@ func GetResult(part string) int {
 		parts := strings.Split(line, " => ")
 		if len(parts) > 1 {
 			if parts[1] == "#" {
-				produceMap[parts[0]] = true
+				first := parts[0][0] == '#'
+				second := parts[0][1] == '#'
+				third := parts[0][2] == '#'
+				fourth := parts[0][3] == '#'
+				fifth := parts[0][4] == '#'
+				key := [5]bool{first, second, third, fourth, fifth}
+				produceMap[key] = true
 			}
 		}
 	}
@@ -206,13 +168,12 @@ func GetResult(part string) int {
 		result = calculateResultB(part, produceMap, pots)
 	}
 
-	// fmt.Printf("Total Time: %v - configTime: %v - activateTime: %v - propagateTime: %v\n", time.Since(start), configTime, activateTime, propagateTime)
-	// fmt.Println(configTime)
+	// fmt.Printf("Total Time: %v - windowTime: %v - propagateTime: %v\n", time.Since(start), windowTime, propagateTime)
 	fmt.Printf("Adapt Config: %v\n", time.Since(start))
 	return result
 }
 
-func calculateResultA(part string, produceMap map[string]bool, pots flowerPots) int {
+func calculateResultA(part string, produceMap map[[5]bool]bool, pots flowerPots) int {
 
 	// fmt.Println(pots)
 	for i := 0; i < 20; i++ {
@@ -223,12 +184,14 @@ func calculateResultA(part string, produceMap map[string]bool, pots flowerPots) 
 	return pots.Value()
 }
 
-func calculateResultB(part string, produceMap map[string]bool, pots flowerPots) int {
+func calculateResultB(part string, produceMap map[[5]bool]bool, pots flowerPots) int {
 
-	for i := 0; i < 5e3; i++ {
+	for i := 0; i < 1e3; i++ {
 		pots.Propagate(produceMap)
 	}
+	value := pots.Value()
+	value += (5e10 - 1e3) * 51
 
-	return pots.Value()
+	return value
 
 }
