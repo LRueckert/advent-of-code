@@ -1,0 +1,216 @@
+package day12
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+)
+
+var file string
+
+var configTime, propagateTime, activateTime, stringTime time.Duration
+
+type flowerPot struct {
+	number   int
+	plant    bool
+	newPlant bool
+	left     *flowerPot
+	right    *flowerPot
+}
+
+func (p *flowerPot) Activate() {
+	p.plant = p.newPlant
+}
+
+func (p flowerPot) String() string {
+	if p.plant {
+		return "#"
+	}
+	return "."
+}
+
+func (p flowerPot) Config() (output string) {
+	start := time.Now()
+	if l := p.left; l != nil {
+		if ll := l.left; ll != nil {
+			output += ll.String()
+		} else {
+			output += "."
+		}
+		output += l.String()
+	} else {
+		output += ".."
+	}
+	output += p.String()
+	if r := p.right; r != nil {
+		output += r.String()
+		if rr := p.right.right; rr != nil {
+			output += rr.String()
+		} else {
+			output += "."
+		}
+	} else {
+		output += ".."
+	}
+	configTime += time.Since(start)
+	return
+}
+
+func (p *flowerPot) Propagate(produceMap map[string]bool) {
+	config := p.Config()
+	if produceMap[config] {
+		p.newPlant = true
+	} else {
+		p.newPlant = false
+	}
+}
+
+type flowerPots struct {
+	first *flowerPot
+	last  *flowerPot
+}
+
+func (p *flowerPots) prepend(value bool) {
+	newPot := flowerPot{p.first.number - 1, value, value, nil, p.first}
+	p.first.left = &newPot
+	p.first = &newPot
+}
+
+func (p *flowerPots) append(value bool) {
+	newPot := flowerPot{p.last.number + 1, value, value, p.last, nil}
+	p.last.right = &newPot
+	p.last = &newPot
+}
+
+func (p flowerPots) String() string {
+	output := ""
+	for i := 0; i > p.first.number; i-- {
+		output += " "
+	}
+	output += "0\n"
+
+	for iter := p.first; iter != p.last; iter = iter.right {
+		output += iter.String()
+	}
+	output += p.last.String()
+	return output
+}
+
+func (p flowerPots) Value() (result int) {
+	for iter := p.first; iter != p.last; iter = iter.right {
+		if iter.plant {
+			result += iter.number
+		}
+	}
+	if p.last.plant {
+		result += p.last.number
+	}
+	return result
+}
+
+func (p *flowerPots) Propagate(produceMap map[string]bool) {
+
+	start := time.Now()
+	for iter := p.first; iter != p.last; iter = iter.right {
+		iter.Propagate(produceMap)
+	}
+	p.last.Propagate(produceMap)
+	prependConfig := "." + p.first.Config()[:4]
+	if produceMap[prependConfig] {
+		p.prepend(true)
+	}
+
+	appendConfig := p.last.Config()[1:] + "."
+	if produceMap[appendConfig] {
+		p.append(true)
+	}
+	propagateTime += time.Since(start)
+
+	start = time.Now()
+
+	for iter := p.first; iter != p.last; iter = iter.right {
+		iter.Activate()
+	}
+	p.last.Activate()
+	activateTime += time.Since(start)
+}
+
+// GetResult returns the result for Advent of Code Day x
+func GetResult(part string) int {
+
+	start := time.Now()
+
+	var pots flowerPots
+	produceMap := make(map[string]bool)
+
+	firstPart := part == "A"
+
+	if file == "" {
+		file = "day12/day12.input"
+	}
+	f, _ := os.Open(file)
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanLines)
+
+	scanner.Scan()
+	line := scanner.Text()
+	parts := strings.Split(line, ": ")
+	initialState := strings.Split(parts[1], "")
+
+	var pot flowerPot
+
+	for index, value := range initialState {
+		if index == 0 {
+			pot = flowerPot{0, value == "#", false, nil, nil}
+			pots.first = &pot
+			pots.last = &pot
+		} else {
+			pots.append(value == "#")
+		}
+	}
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		parts := strings.Split(line, " => ")
+		if len(parts) > 1 {
+			if parts[1] == "#" {
+				produceMap[parts[0]] = true
+			}
+		}
+	}
+
+	var result int
+	if firstPart {
+		result = calculateResultA(part, produceMap, pots)
+	} else {
+		result = calculateResultB(part, produceMap, pots)
+	}
+
+	fmt.Printf("Total Time: %v - configTime: %v - activateTime: %v - propagateTime: %v\n", time.Since(start), configTime, activateTime, propagateTime)
+	// fmt.Println(configTime)
+	fmt.Println(time.Since(start))
+	return result
+}
+
+func calculateResultA(part string, produceMap map[string]bool, pots flowerPots) int {
+
+	for i := 0; i < 20; i++ {
+		pots.Propagate(produceMap)
+	}
+
+	return pots.Value()
+}
+
+func calculateResultB(part string, produceMap map[string]bool, pots flowerPots) int {
+
+	for i := 0; i < 1000; i++ {
+		pots.Propagate(produceMap)
+	}
+
+	return pots.Value()
+
+}
