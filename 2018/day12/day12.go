@@ -32,7 +32,7 @@ func (p flowerPot) String() string {
 }
 
 func (p flowerPot) Config() (output string) {
-	start := time.Now()
+	// start := time.Now()
 	if l := p.left; l != nil {
 		if ll := l.left; ll != nil {
 			output += ll.String()
@@ -54,17 +54,32 @@ func (p flowerPot) Config() (output string) {
 	} else {
 		output += ".."
 	}
-	configTime += time.Since(start)
+	// configTime += time.Since(start)
 	return
 }
 
-func (p *flowerPot) Propagate(produceMap map[string]bool) {
-	config := p.Config()
+func (p flowerPot) AdaptPreviousConfig(config string) (output string) {
+	output = config[1:]
+	if r := p.right; r != nil {
+		if rr := r.right; rr != nil {
+			output += rr.String()
+		} else {
+			output += "."
+		}
+	} else {
+		output += "."
+	}
+	return
+}
+
+func (p *flowerPot) Propagate(produceMap map[string]bool, previousConfig string) string {
+	config := p.AdaptPreviousConfig(previousConfig)
 	if produceMap[config] {
 		p.newPlant = true
 	} else {
 		p.newPlant = false
 	}
+	return config
 }
 
 type flowerPots struct {
@@ -112,29 +127,30 @@ func (p flowerPots) Value() (result int) {
 
 func (p *flowerPots) Propagate(produceMap map[string]bool) {
 
-	start := time.Now()
-	for iter := p.first; iter != p.last; iter = iter.right {
-		iter.Propagate(produceMap)
-	}
-	p.last.Propagate(produceMap)
+	// start := time.Now()
+	var config string
 	prependConfig := "." + p.first.Config()[:4]
-	if produceMap[prependConfig] {
-		p.prepend(true)
+	config = prependConfig
+	for iter := p.first; iter != p.last; iter = iter.right {
+		config = iter.Propagate(produceMap, config)
 	}
-
-	appendConfig := p.last.Config()[1:] + "."
+	config = p.last.Propagate(produceMap, config)
+	appendConfig := config[1:] + "."
 	if produceMap[appendConfig] {
 		p.append(true)
 	}
-	propagateTime += time.Since(start)
+	if produceMap[prependConfig] {
+		p.prepend(true)
+	}
+	// propagateTime += time.Since(start)
 
-	start = time.Now()
+	// start = time.Now()
 
 	for iter := p.first; iter != p.last; iter = iter.right {
 		iter.Activate()
 	}
 	p.last.Activate()
-	activateTime += time.Since(start)
+	// activateTime += time.Since(start)
 }
 
 // GetResult returns the result for Advent of Code Day x
@@ -190,16 +206,18 @@ func GetResult(part string) int {
 		result = calculateResultB(part, produceMap, pots)
 	}
 
-	fmt.Printf("Total Time: %v - configTime: %v - activateTime: %v - propagateTime: %v\n", time.Since(start), configTime, activateTime, propagateTime)
+	// fmt.Printf("Total Time: %v - configTime: %v - activateTime: %v - propagateTime: %v\n", time.Since(start), configTime, activateTime, propagateTime)
 	// fmt.Println(configTime)
-	fmt.Println(time.Since(start))
+	fmt.Printf("Adapt Config: %v\n", time.Since(start))
 	return result
 }
 
 func calculateResultA(part string, produceMap map[string]bool, pots flowerPots) int {
 
+	// fmt.Println(pots)
 	for i := 0; i < 20; i++ {
 		pots.Propagate(produceMap)
+		// fmt.Println(pots)
 	}
 
 	return pots.Value()
@@ -207,7 +225,7 @@ func calculateResultA(part string, produceMap map[string]bool, pots flowerPots) 
 
 func calculateResultB(part string, produceMap map[string]bool, pots flowerPots) int {
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 5e3; i++ {
 		pots.Propagate(produceMap)
 	}
 

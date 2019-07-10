@@ -178,8 +178,8 @@ func GetResult(part string) int {
 		result = calculateResultB(part, produceMap, pots)
 	}
 
-	fmt.Printf("Total Time: %v - propagateTime: %v - stringTime: %v\n", time.Since(start), propagateTime, stringTime)
-	fmt.Println(time.Since(start))
+	// fmt.Printf("Total Time: %v - propagateTime: %v - stringTime: %v\n", time.Since(start), propagateTime, stringTime)
+	fmt.Printf("string: %v\n", time.Since(start))
 	return result
 }
 

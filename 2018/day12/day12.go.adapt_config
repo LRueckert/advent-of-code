@@ -208,7 +208,7 @@ func GetResult(part string) int {
 
 	// fmt.Printf("Total Time: %v - configTime: %v - activateTime: %v - propagateTime: %v\n", time.Since(start), configTime, activateTime, propagateTime)
 	// fmt.Println(configTime)
-	fmt.Println(time.Since(start))
+	fmt.Printf("Adapt Config: %v\n", time.Since(start))
 	return result
 }
 
