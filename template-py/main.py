@@ -8,7 +8,7 @@ def getResult(part, file):
 
     firstPart = part == "A"
 
-    with open("input", mode="rt", encoding="utf-8") as f:
+    with open(file, mode="rt", encoding="utf-8") as f:
         input = f.readlines()
 
     if firstPart:
