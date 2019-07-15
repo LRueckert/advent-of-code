@@ -1,4 +1,4 @@
-package day7
+package main
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func TestGetResult(t *testing.T) {
 			file = fmt.Sprintf("day7%s.test", tt.name)
 			baseDuration = 0
 			numWorkers = 2
-			if got := GetResult(tt.name); got != tt.want {
+			if got := getResult(tt.name); got != tt.want {
 				t.Errorf("GetResult() = %v, want %v", got, tt.want)
 			}
 		})

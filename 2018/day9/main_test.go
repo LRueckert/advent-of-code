@@ -1,4 +1,4 @@
-package day9
+package main
 
 import (
 	"testing"
@@ -23,8 +23,8 @@ func TestGetResult(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			numPlayers = tt.players
 			lastMarble = tt.marbles
-			if got := GetResult(tt.part); got != tt.want {
-				t.Errorf("GetResult() = %v, want %v", got, tt.want)
+			if got := getResult(tt.part); got != tt.want {
+				t.Errorf("getResult() = %v, want %v", got, tt.want)
 			}
 		})
 	}

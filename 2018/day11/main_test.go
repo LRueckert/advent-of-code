@@ -1,4 +1,4 @@
-package day11
+package main
 
 import (
 	"testing"
@@ -12,14 +12,14 @@ func TestGetResult(t *testing.T) {
 		want         string
 	}{
 		{"A-1", "A", 18, "33,45"},
-		// {"A-2", "A", 42, "21,61"},
-		// {"B-1", "B", 18, "90,269,16"},
-		// {"B-2", "B", 42, "232,251,12"},
+		{"A-2", "A", 42, "21,61"},
+		{"B-1", "B", 18, "90,269,16"},
+		{"B-2", "B", 42, "232,251,12"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			serialNumber = tt.serialNumber
-			if got := GetResult(tt.part); got != tt.want {
+			if got := getResult(tt.part); got != tt.want {
 				t.Errorf("GetResult() = %v, want %v", got, tt.want)
 			}
 		})

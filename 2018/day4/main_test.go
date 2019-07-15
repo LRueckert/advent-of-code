@@ -1,4 +1,4 @@
-package day4
+package main
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ func TestGetResult(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			file = fmt.Sprintf("day4%s.test", tt.name)
-			if got := GetResult(tt.name); got != tt.want {
-				t.Errorf("GetResult() = %v, want %v", got, tt.want)
+			if got := getResult(tt.name); got != tt.want {
+				t.Errorf("getResult() = %v, want %v", got, tt.want)
 			}
 		})
 	}
