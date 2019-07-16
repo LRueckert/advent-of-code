@@ -9,7 +9,7 @@ def getResult(part, file):
     firstPart = part == "A"
 
     with open(file, mode="rt", encoding="utf-8") as f:
-        input = f.readlines()
+        input = f.read().splitlines()
 
     if firstPart:
         result = calculateResultA(input)
