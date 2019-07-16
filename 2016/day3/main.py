@@ -40,11 +40,8 @@ def calculateResultB(input):
     for one in it:
         two = next(it)
         three = next(it)
-        numbersOne = list(map(int, one.split()))
-        numbersTwo = list(map(int, two.split()))
-        numbersThree = list(map(int, three.split()))
-        numbers = [numbersOne, numbersTwo, numbersThree]
-        numbers = [[numbers[inner][outer] for inner in range(3) ] for outer in range(3)]
+        numbers = [list(map(int, one.split())), list(map(int, two.split())), list(map(int, three.split()))]
+        numbers = [list(x) for x in zip(*numbers)]
         for col in numbers:
             col.sort()
             if col[0] + col[1] > col[2]:
