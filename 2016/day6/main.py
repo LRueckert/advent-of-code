@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 import sys
+import pprint
 
 file = "input"
-
+pp = pprint.PrettyPrinter(4, 250)
 
 def getResult(part, file):
 
@@ -21,11 +22,28 @@ def getResult(part, file):
 
 
 def calculateResultA(input):
-    return 0
+
+    original = [list(x) for x in input]
+    transposed = [{ y: x.count(y) for y in x} for x in zip(*original)]
+
+    result = ""
+    for item in transposed:
+        result += max(item.items(), key=lambda x : x[1])[0]
+
+    return result
+
 
 
 def calculateResultB(input):
-    return 0
+
+    original = [list(x) for x in input]
+    transposed = [{ y: x.count(y) for y in x} for x in zip(*original)]
+
+    result = ""
+    for item in transposed:
+        result += min(item.items(), key=lambda x : x[1])[0]
+
+    return result
 
 
 if __name__ == "__main__":
