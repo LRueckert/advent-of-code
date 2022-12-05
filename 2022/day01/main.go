@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+
+	"golang.org/x/exp/slices"
 )
 
 var file string
 
 func getResult(part string) int {
-	input := []string{}
+	input := []int{0}
 
 	firstPart := part == "A"
 
@@ -24,7 +27,13 @@ func getResult(part string) int {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		input = append(input, line)
+		number, err := strconv.Atoi(line)
+		if err == nil {
+			input[len(input)-1] += number
+		} else {
+			input = append(input, 0)
+		}
+
 	}
 
 	if firstPart {
@@ -34,19 +43,14 @@ func getResult(part string) int {
 	return calculateResultB(input)
 }
 
-func calculateResultA(input []string) int {
-
-	result := 0
-
-	return result
+func calculateResultA(input []int) int {
+	slices.Sort(input)
+	return input[len(input)-1]
 }
 
-func calculateResultB(input []string) int {
-
-	result := 0
-
-	return result
-
+func calculateResultB(input []int) int {
+	slices.Sort(input)
+	return input[len(input)-1] + input[len(input)-2] + input[len(input)-3]
 }
 
 func main() {
