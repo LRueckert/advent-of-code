@@ -9,9 +9,18 @@ import (
 var file string
 
 func getResult(part string) int {
-	input := []string{}
-
+	input := getInput()
 	firstPart := part == "A"
+
+	if firstPart {
+		return calculateResultA(input)
+	}
+
+	return calculateResultB(input)
+}
+
+func getInput() []string {
+	input := []string{}
 
 	if file == "" {
 		file = "input"
@@ -27,11 +36,7 @@ func getResult(part string) int {
 		input = append(input, line)
 	}
 
-	if firstPart {
-		return calculateResultA(input)
-	}
-
-	return calculateResultB(input)
+	return input
 }
 
 func calculateResultA(input []string) int {
