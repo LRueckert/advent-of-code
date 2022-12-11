@@ -15,7 +15,7 @@ func TestGetResult(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			file = fmt.Sprintf("test%s", tt.name)
+			file = fmt.Sprintf("test%s.txt", tt.name)
 			if got := getResult(tt.name); got != tt.want {
 				t.Errorf("GetResult() = %v, want %v", got, tt.want)
 			}

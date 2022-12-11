@@ -23,7 +23,7 @@ func getInput() []string {
 	input := []string{}
 
 	if file == "" {
-		file = "input"
+		file = "input.txt"
 	}
 	f, _ := os.Open(file)
 	defer f.Close()
