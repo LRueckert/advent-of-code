@@ -8,6 +8,21 @@ import (
 
 var file string
 
+func calculateResultA(input []string) int {
+
+	result := 0
+
+	return result
+}
+
+func calculateResultB(input []string) int {
+
+	result := 0
+
+	return result
+
+}
+
 func getResult(part string) int {
 	input := getInput()
 	firstPart := part == "A"
@@ -37,21 +52,6 @@ func getInput() []string {
 	}
 
 	return input
-}
-
-func calculateResultA(input []string) int {
-
-	result := 0
-
-	return result
-}
-
-func calculateResultB(input []string) int {
-
-	result := 0
-
-	return result
-
 }
 
 func main() {
