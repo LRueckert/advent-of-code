@@ -9,14 +9,12 @@ import (
 var file string
 
 func calculateResultA(input []string) int {
-
 	result := 0
 
 	return result
 }
 
 func calculateResultB(input []string) int {
-
 	result := 0
 
 	return result
