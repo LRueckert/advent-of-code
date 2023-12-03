@@ -108,7 +108,7 @@ func getInput() []string {
 	input := []string{}
 
 	if file == "" {
-		file = "input.txt"
+		file = "input_yuri.txt"
 	}
 	f, _ := os.Open(file)
 	defer f.Close()

@@ -10,8 +10,8 @@ func TestGetResult(t *testing.T) {
 		name string
 		want int
 	}{
-		{"A", 4},
-		// {"B", 3},
+		{"A", 4361},
+		{"B", 467835},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
