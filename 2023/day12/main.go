@@ -10,66 +10,114 @@ import (
 )
 
 var file string
+var debug = false
 
 var hashRe = regexp.MustCompile(`#+`)
+
+func DebugPrintln(a ...any) {
+	if debug {
+		fmt.Println(a...)
+	}
+}
+
+func DebugPrintf(s string, a ...any) {
+	if debug {
+		fmt.Printf(s, a...)
+	}
+}
+
+func MemoryKey(pattern string, groups []int, inGroup bool, needDot bool) string {
+	sGroups := []string{}
+	for _, el := range groups {
+		sGroups = append(sGroups, strconv.Itoa(el))
+	}
+	return fmt.Sprintf("%s-%s-%v-%v", pattern, strings.Join(sGroups, ","), inGroup, needDot)
+}
 
 type Row struct {
 	Pattern string
 	Groups  []int
 }
 
-func (r *Row) Expand() {
-	slice := []string{r.Pattern, r.Pattern, r.Pattern, r.Pattern, r.Pattern}
-	r.Pattern = strings.Join(slice, "?")
+func (r Row) Expand(factor int) Row {
+	newPattern := []string{}
 	var newGroups []int
-	for i := 0; i < 5; i++ {
+	for i := 0; i < factor; i++ {
+		newPattern = append(newPattern, r.Pattern)
 		newGroups = append(newGroups, r.Groups...)
 	}
-	r.Groups = newGroups
-}
-
-func solveRow(pattern string, groups []int) int {
-	hash := strings.Replace(pattern, "?", "#", 1)
-	dot := strings.Replace(pattern, "?", ".", 1)
-	if hash == dot {
-		if correctSolution(pattern, groups) {
-			return 1
-		} else {
-			return 0
-		}
+	return Row{
+		Pattern: strings.Join(newPattern, "?"),
+		Groups:  newGroups,
 	}
-	dotOptions := solveRow(dot, groups)
-	hashOptions := solveRow(hash, groups)
-	return dotOptions + hashOptions
 }
 
-func correctSolution(pattern string, groups []int) bool {
-	dotSplit := filterEmpty(strings.Split(pattern, "."))
-	if len(dotSplit) == len(groups) {
-		for i := 0; i < len(groups); i++ {
-			if len(dotSplit[i]) != groups[i] {
-				return false
+func solveRow(pattern string, groups []int, inGroup bool, needDot bool, memory map[string]int) int {
+	DebugPrintln("Solve for ", pattern, groups, inGroup, needDot)
+	// end recursion when no pattern left
+	if len(pattern) == 0 {
+		if len(groups) == 0 {
+			return 1
+		}
+		return 0
+	}
+	// Use memory to see if we know the solution
+	memoryKey := MemoryKey(pattern, groups, inGroup, needDot)
+	known, ok := memory[memoryKey]
+	if ok {
+		fmt.Println("memory was useful for", pattern, groups, inGroup, needDot)
+		return known
+	}
+	// Work on next character
+	result := 0
+	next := pattern[0]
+	switch next {
+	case '?':
+		// Replace questionmark with both options and try again
+		dot := strings.Replace(pattern, "?", ".", 1)
+		hash := strings.Replace(pattern, "?", "#", 1)
+		dotOptions := solveRow(dot, groups, inGroup, needDot, memory)
+		hashOptions := solveRow(hash, groups, inGroup, needDot, memory)
+		result = dotOptions + hashOptions
+	case '.':
+		if inGroup {
+			result = 0
+		} else {
+			result = solveRow(strings.Clone(pattern[1:]), groups, false, false, memory)
+		}
+	case '#':
+		if needDot || len(groups) == 0 || groups[0] == 0 {
+			result = 0
+		} else {
+			newGroups := DeepClone(groups)
+			if newGroups[0] > 1 {
+				newGroups[0]--
+				result = solveRow(strings.Clone(pattern[1:]), newGroups, true, false, memory)
+			} else {
+				result = solveRow(strings.Clone(pattern[1:]), newGroups[1:], false, true, memory)
 			}
 		}
-		return true
 	}
-	return false
+	memory[memoryKey] = result
+	DebugPrintln("Add result for ", memoryKey, "==>", result)
+	return result
 }
 
-func filterEmpty(s []string) (filtered []string) {
-	for _, el := range s {
-		if el != "" {
-			filtered = append(filtered, el)
-		}
+func DeepClone(a []int) []int {
+	newA := make([]int, len(a))
+	for i, el := range a {
+		newA[i] = el
 	}
-	return
+	return newA
 }
 
 func calculateResultA(input []string) int {
 	result := 0
 	rows := ParseRows(input)
 	for _, row := range rows {
-		result += solveRow(row.Pattern, row.Groups)
+		rowResult := solveRow(row.Pattern, row.Groups, false, false, make(map[string]int))
+		fmt.Println(row, " ==> ", rowResult)
+		result += rowResult
 	}
 	return result
 }
@@ -78,10 +126,10 @@ func calculateResultB(input []string) int {
 	result := 0
 	rows := ParseRows(input)
 	for _, row := range rows {
-		fmt.Println("Original ", row)
-		row.Expand()
-		fmt.Println("Solving for ", row)
-		// result += solveRow(row.Pattern, row.Groups)
+		expanded := row.Expand(5)
+		rowResult := solveRow(expanded.Pattern, expanded.Groups, false, false, make(map[string]int))
+		fmt.Println(expanded, " ==> ", rowResult)
+		result += rowResult
 	}
 	return result
 }
